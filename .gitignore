@@ -1,0 +1,14 @@
+# build output and release zips
+build/
+release/
+# this PC's paths (tools\paths.ps1 reads it)
+local-paths.txt
+__pycache__/
+# decompiled / disassembled game code: notes for this machine only, never published
+recon/*.c
+recon/*_asm.txt
+recon/**/*.c
+!recon/**/README.md
+# except our own code kept with the write-ups of reverted experiments
+!recon/async-paths/pathfast_async_block.cpp
+!recon/pick-cache/pickcache.cpp

@@ -1,0 +1,48 @@
+// whether a load allocates depends on what the process loaded before -> never in the sim heap.
+static thread_local int t_resource;
+// Pathfinder memory (solve results, the solver's node pool, the result-slot array): never in the sim heap. Whether and
+// when it allocates depends on path lengths, and the bperf performance mod solves paths on worker threads and hands
+// the results over later - with this rule a player with bperf and one without lay out the sim heap identically.
+// Set around path solves / slot allocation (h_PathMessage, h_PathSlotAlloc) and by bperf through BmpPathMemory.
+static thread_local int t_pathMem;
+static inline bool SimHeapContext(bool mainThread) {
+    if (t_resource || t_pathMem) return false;
+    return mainThread ? InSim() : (t_loading && !g_s.loop && t_visual == 0 && g_visualStub == 0);
+...
+                return p;
+            }
+        } else if (g_s.loop && !t_pathMem) {
+            AcquireSRWLockExclusive(&g_strayLock);
+...
+    // window's statistics rollover was found). Logged per calling code, with the stack the first time - at the next
+    // sim tick, so a session being torn down (resync, leaving: everything is freed) doesn't count.
+    if (!reuse && main && g_s.loop && g_s.tick > 20 && !t_pathMem) {
+        if (!g_loggedFrees.count(caller) && !g_pendingFreeLogs.count(caller) && g_pendingFreeLogs.size() < 20) {
+...
+static TerrainPoint_t o_TerrainPoint;
+// Pathfinder message dispatcher exe+0xab900 (message 5 = solve into a result slot) and result-slot allocation
+// exe+0xab710 (grows the slot array, copying every slot's path): path memory, see t_pathMem.
+using PathMessage_t = void(__fastcall*)(void* pf, const int* msg);
+static PathMessage_t o_PathMessage;
+static void __fastcall h_PathMessage(void* pf, const int* msg) {
+    if (msg[0] != 5) return o_PathMessage(pf, msg);
+    t_pathMem++;
+    o_PathMessage(pf, msg);
+    t_pathMem--;
+}
+using PathSlotAlloc_t = int*(__fastcall*)(void* pf, int* out);
+static PathSlotAlloc_t o_PathSlotAlloc;
+static int* __fastcall h_PathSlotAlloc(void* pf, int* out) {
+    t_pathMem++;
+    int* r = o_PathSlotAlloc(pf, out);
+    t_pathMem--;
+    return r;
+}
+// For bperf (dbghelp.dll): it calls the game's pool / vector code for path results itself, inside this scope.
+extern "C" void __stdcall BmpPathMemory(int enter) { t_pathMem += enter ? 1 : -1; }
+
+...
+    HookAt("TerrainPoint", (void*)(g_exeBase + Rva(0xa48b0)), (void*)h_TerrainPoint, (void**)&o_TerrainPoint);
+    HookAt("PathMessage", (void*)(g_exeBase + Rva(0xab900)), (void*)h_PathMessage, (void**)&o_PathMessage);
+    HookAt("PathSlotAlloc", (void*)(g_exeBase + Rva(0xab710)), (void*)h_PathSlotAlloc, (void**)&o_PathSlotAlloc);
+    HookAt("MapConnectivity", (void*)(g_exeBase + Rva(0xa1950)), (void*)h_MapConnect, (void**)&o_MapConnect);
