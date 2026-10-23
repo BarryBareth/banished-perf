@@ -70,8 +70,8 @@ run on worker threads meanwhile. Deterministic - delivery depends only on tick n
 count (no workers: solved inline, still delivered at T+K) - but a different game than vanilla, so:
 - `BperfSimSignature()` (exported) returns `BanishedPerf-delayed-paths-K`; the multiplayer mod adds it to its mod list,
   so a player with another setting is refused at join with its usual "your mods differ" message. In exact mode it
-  returns "" and nothing is added. **Needs a multiplayer build with that check** - an older one ignores the entry and
-  would let mismatched players desync.
+  returns "" and nothing is added. **Needs Banished Multiplayer 0.9.6 or later** (the first release with that check) - an
+  older one ignores the entry and would let mismatched players desync.
 - Delivery runs in the World::Update hook (installed from DllMain so the multiplayer mod's hook wraps it): inside its
   tick, after the players' commands, pending results in request order. Each solve reads a snapshot of the solver
   block and walk grid taken at request time (shared by requests until the next grid/cost message), so grid/cost

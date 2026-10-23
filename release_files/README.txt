@@ -57,15 +57,15 @@ Optional: delayed paths (a bit more speed, multiplayer players must agree)
 With Banished Multiplayer, a file named bperf_delaypaths.txt in the Banished folder lets path searches run in the
 background: villagers start walking one game tick (1/60 s of game time) after deciding to, and big towns run
 about 8% faster again. This does change the game very slightly, so in multiplayer EVERY player needs the same
-setting - the multiplayer mod checks it when someone joins and says so if it differs. (It needs a multiplayer
-version that knows about it; without one, don't use this file in multiplayer.) Single player is unaffected.
+setting - the multiplayer mod checks it when someone joins and says so if it differs. (That check needs Banished
+Multiplayer 0.9.6 or later; with an older version, don't use this file in multiplayer.) Single player is unaffected.
 
 Optional: parallel movement (more speed, multiplayer players must agree)
 ------------------------------------------------------------------------
 A file named bperf_parallelmove.txt in the Banished folder moves all villagers and animals using several CPU cores:
 first everyone decides what to do, then everyone moves. The only difference to the normal game is that, within one
 game tick, nobody sees another villager's step of that same tick - you won't notice it, but in multiplayer EVERY
-player needs the same setting (checked when someone joins, with a multiplayer version that knows about it). Works in
+player needs the same setting (checked when someone joins, with Banished Multiplayer 0.9.6 or later). Works in
 single player too. Together with bperf_delaypaths.txt, big towns run roughly 10% faster again.
 
 Optional: parallel AI (with parallel movement; multiplayer players must agree)
